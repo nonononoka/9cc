@@ -8,9 +8,11 @@ int main(int argc, char **argv)
 
   // Tokenize and parse.
   user_input = argv[1];
-
+  // fprintf(stderr, "user_input: %s", user_input);
   token = tokenize();
+  // fprintf(stderr, "done token");
   program();
+  // fprintf(stderr, "done program");
 
   // アセンブリの前半部分を出力
   printf(".intel_syntax noprefix\n");
@@ -21,7 +23,9 @@ int main(int argc, char **argv)
   // 変数26個分
   printf("  push rbp\n");     // 今のrbpの値をpushする
   printf("  mov rbp, rsp\n"); // rbp = rsp
-  printf("  sub rsp, 208\n");
+  if(locals){
+  printf("  sub rsp, %d\n", locals->offset);
+  }
 
   for (int i = 0; code[i]; i++)
   {

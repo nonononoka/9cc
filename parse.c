@@ -159,7 +159,27 @@ Node *primary()
     // ローカル変数のベースポインタからのオフセット
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_LVAR;
-    node->offset = (tok->str[0] - 'a' + 1) * 8;
+
+    struct LVar *lvar = find_lvar(tok);
+    if(lvar){
+      node->offset = lvar->offset;
+    } else{
+      // 新たな変数の場合、新しいLVarを作って、新たなオフセットをセットして、そのオフセットを使う.
+      lvar = calloc(1, sizeof(struct LVar));
+      lvar->next = locals;
+      lvar->name = tok->str;
+      lvar->len = tok->len;
+      if (locals)
+      {
+        lvar->offset = locals->offset + 8;
+      }
+      else
+      {
+        lvar->offset = 8;
+      }
+      node->offset = lvar->offset;
+      locals = lvar;
+    }
     return node;
   }
   return new_num(expect_number());

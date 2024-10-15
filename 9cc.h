@@ -60,8 +60,18 @@ struct Node {
   char name;
   int offset;
 };
+
+// ローカル変数の型
+struct LVar {
+  struct LVar *next; // 次の変数かNULL
+  char *name; // 変数の名前
+  int len;    // 名前の長さ
+  int offset; // RBPからのオフセット
+};
 void program();
 extern Node *code[100];
+extern struct LVar *locals;
+struct LVar *find_lvar(Token *tok);
 //
 // codegen.c
 //
