@@ -1,4 +1,5 @@
 #include "9cc.h"
+#include <stdio.h>
 
 char *user_input;
 Token *token;
@@ -30,6 +31,16 @@ bool consume(char *op) {
   token = token->next;
   return true;
 }
+
+// Consumes the current token if it is an identifier.
+Token *consume_ident() {
+  if (token->kind != TK_IDENT)
+    return NULL;
+  Token *t = token;
+  token = token->next;
+  return t;
+}
+
 // Ensure that the current token is `op`.
 void expect(char *op) {
   if (token->kind != TK_RESERVED || strlen(op) != token->len ||
@@ -80,7 +91,7 @@ Token *tokenize() {
       continue;
     }
     // Single-letter punctuator
-    if (strchr("+-*/()<>", *p)) {
+    if (strchr("+-*/()<>;=", *p)) {
       cur = new_token(TK_RESERVED, cur, p++, 1);
       continue;
     }
@@ -91,6 +102,10 @@ Token *tokenize() {
       cur->val = strtol(p, &p, 10);
       cur->len = p - q;
       continue;
+    }
+    if ('a' <= *p && *p <= 'z'){
+        cur = new_token(TK_IDENT, cur, p++, 1);
+        continue;
     }
     error_at(p, "invalid token");
   }
