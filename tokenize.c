@@ -54,6 +54,17 @@ bool consume(char *op) {
   return true;
 }
 
+// 次のトークンが期待している種類のときには、トークンを1つ読み進めて
+// 真を返す。それ以外の場合には偽を返す。
+bool consume_kind(int token_kind)
+{
+  if (token->kind != token_kind){
+    return false;
+  }
+  token = token->next;
+  return true;
+}
+
 // Consumes the current token if it is an identifier.
 Token *consume_ident() {
   if (token->kind != TK_IDENT)
@@ -123,6 +134,11 @@ Token *tokenize() {
       char *q = p;
       cur->val = strtol(p, &p, 10);
       cur->len = p - q;
+      continue;
+    }
+    if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])){
+      cur = new_token(TK_RETURN, cur, p, 6);
+      p += 6;
       continue;
     }
     if (is_alpha(*p)){

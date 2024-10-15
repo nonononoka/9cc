@@ -45,7 +45,8 @@ Node *primary();
 void program()
 {
   int i = 0;
-  while (!at_eof()){
+  while (!at_eof())
+  {
     code[i++] = stmt();
   }
   code[i] = NULL;
@@ -53,8 +54,20 @@ void program()
 
 Node *stmt()
 {
-  Node *node = expr();
-  expect(";");
+  Node *node;
+  if (consume_kind(TK_RETURN))
+  {
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_RETURN;
+    node->lhs = expr();
+  }
+  else
+  {
+    node = expr();
+  }
+  if (!consume(";")){
+    error_at(token->str, "';'ではないトークンです");
+  }
   return node;
 }
 
@@ -161,9 +174,12 @@ Node *primary()
     node->kind = ND_LVAR;
 
     struct LVar *lvar = find_lvar(tok);
-    if(lvar){
+    if (lvar)
+    {
       node->offset = lvar->offset;
-    } else{
+    }
+    else
+    {
       // 新たな変数の場合、新しいLVarを作って、新たなオフセットをセットして、そのオフセットを使う.
       lvar = calloc(1, sizeof(struct LVar));
       lvar->next = locals;

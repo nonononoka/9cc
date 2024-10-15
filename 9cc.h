@@ -11,6 +11,7 @@ typedef enum {
   TK_RESERVED, // Keywords or punctuators
   TK_IDENT,    // 識別子
   TK_NUM,      // Integer literals
+  TK_RETURN,
   TK_EOF,      // End-of-file markers
 } TokenKind;
 // Token type
@@ -26,6 +27,7 @@ void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 bool consume(char *op);
 Token* consume_ident();
+bool consume_kind(int token_kind);
 void expect(char *op);
 int expect_number();
 bool at_eof();
@@ -48,6 +50,7 @@ typedef enum {
   ND_LE,  // <=
   ND_NUM, // Integer
   ND_LVAR,   // ローカル変数
+  ND_RETURN,
 } NodeKind;
 // AST node type
 typedef struct Node Node;
