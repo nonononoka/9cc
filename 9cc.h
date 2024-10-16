@@ -11,7 +11,6 @@ typedef enum {
   TK_RESERVED, // Keywords or punctuators
   TK_IDENT,    // 識別子
   TK_NUM,      // Integer literals
-  TK_RETURN,
   TK_EOF,      // End-of-file markers
 } TokenKind;
 // Token type
@@ -51,6 +50,7 @@ typedef enum {
   ND_NUM, // Integer
   ND_LVAR,   // ローカル変数
   ND_RETURN,
+  ND_IF,
 } NodeKind;
 // AST node type
 typedef struct Node Node;
@@ -59,6 +59,12 @@ struct Node {
   Node *next;
   Node *lhs;     // Left-hand side
   Node *rhs;     // Right-hand side
+
+  // "if" statement
+  Node *cond;
+  Node *then;
+  Node *els;
+
   int val;       // Used if kind == ND_NUM
   char name;
   int offset;

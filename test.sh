@@ -44,5 +44,9 @@ assert 5 'a=3;b =2; a+b;'
 assert 8 'foo=3;bar =2 + 3; foo+bar;'
 assert 4 'foo=3;bar =2 + 3; return (foo+bar)/2;'
 assert 7 'foo=3;bar =2 + 3; return 7; return foo+bar;'
+assert 3 'if (0) return 2; return 3;'
+assert 3 'if (1-1) return 2; return 3;'
+assert 2 'if (1) return 2; return 3;'
+assert 2 'if (2-1) return 2; return 3;'
 
 echo OK

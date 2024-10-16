@@ -83,8 +83,10 @@ void expect(char *op) {
 }
 // Ensure that the current token is TK_NUM.
 int expect_number() {
-  if (token->kind != TK_NUM)
+  if (token->kind != TK_NUM){
+    // fprintf(stderr, "expected_number: %s\n", token->str);
     error_at(token->str, "expected a number");
+  }
   int val = token->val;
   token = token->next;
   return val;
@@ -104,9 +106,33 @@ Token *new_token(TokenKind kind, Token *cur, char *str, int len) {
 bool startswith(char *p, char *q) {
   return memcmp(p, q, strlen(q)) == 0;
 }
+
+char *starts_with_reserved(char *p){
+  static char *kw[] = {"return", "if", "else"};
+
+  for (int i = 0; i < sizeof(kw)/sizeof(*kw); i++){
+    int len = strlen(kw[i]);
+    if(startswith(p, kw[i]) && !is_alnum(p[len])){
+      // fprintf(stderr, "yoyakugo: %s\n", kw[i]);
+      return kw[i];
+    }
+  }
+
+  static char *ops[] = {"==", "!=", "<=", ">="};
+
+  for (int i = 0; i < sizeof(ops)/sizeof(*ops); i++){
+    if(startswith(p, ops[i])){
+      return ops[i];
+    }
+  }
+
+  return NULL;
+}
+
 // Tokenize `user_input` and returns new tokens.
 Token *tokenize() {
   char *p = user_input;
+  // fprintf(stderr, "user_input: %s", p);
   Token head;
   head.next = NULL;
   Token *cur = &head;
@@ -116,13 +142,16 @@ Token *tokenize() {
       p++;
       continue;
     }
-    // Multi-letter punctuator
-    if (startswith(p, "==") || startswith(p, "!=") ||
-        startswith(p, "<=") || startswith(p, ">=")) {
-      cur = new_token(TK_RESERVED, cur, p, 2);
-      p += 2;
+    
+    // Keyword or multi-letter punctuator
+    char *kw = starts_with_reserved(p);
+    if (kw){
+      int len = strlen(kw);
+      cur = new_token(TK_RESERVED, cur, p, len);
+      p += len;
       continue;
     }
+
     // Single-letter punctuator
     if (strchr("+-*/()<>;=", *p)) {
       cur = new_token(TK_RESERVED, cur, p++, 1);
@@ -134,11 +163,6 @@ Token *tokenize() {
       char *q = p;
       cur->val = strtol(p, &p, 10);
       cur->len = p - q;
-      continue;
-    }
-    if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])){
-      cur = new_token(TK_RETURN, cur, p, 6);
-      p += 6;
       continue;
     }
     if (is_alpha(*p)){

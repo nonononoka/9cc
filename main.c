@@ -10,6 +10,11 @@ int main(int argc, char **argv)
   user_input = argv[1];
   // fprintf(stderr, "user_input: %s", user_input);
   token = tokenize();
+
+  Token* cur = token;
+  while (cur){
+    cur = cur->next;
+  }
   // fprintf(stderr, "done token");
   program();
   // fprintf(stderr, "done program");
@@ -26,7 +31,6 @@ int main(int argc, char **argv)
   if(locals){
   printf("  sub rsp, %d\n", locals->offset);
   }
-
   for (int i = 0; code[i]; i++)
   {
     gen(code[i]);

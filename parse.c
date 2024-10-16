@@ -55,16 +55,26 @@ void program()
 Node *stmt()
 {
   Node *node;
-  if (consume_kind(TK_RETURN))
+  if (consume("return"))
   {
     node = calloc(1, sizeof(Node));
     node->kind = ND_RETURN;
     node->lhs = expr();
+    expect(";");
+    return node;
   }
-  else
-  {
-    node = expr();
+  if (consume("if")){
+    Node * node = new_node(ND_IF);
+    expect("(");
+    node->cond = expr();
+    expect(")");
+    node->then = stmt();
+    if(consume("else")){
+      node->els = stmt();
+    }
+    return node;
   }
+  node = expr();
   if (!consume(";")){
     error_at(token->str, "';'ではないトークンです");
   }
