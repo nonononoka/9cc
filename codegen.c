@@ -102,8 +102,20 @@ void gen(Node *node) {
     for (int i = nargs -1; i >= 0; i--){
       printf("  pop %s\n", argreg[i]);
     }
-    printf(" call %s\n", node->funcname);
-    printf(" push rax\n");
+    int seq = labelseq++;
+    printf("  mov rax, rsp\n"); // rax = rsp
+    printf("  and rax, 15\n"); // raxの下位4bitのみ残す
+    printf("  jnz .Lcall%d\n", seq); // raxが0じゃないなら、.Lcallラベルにジャンプ
+    printf("  mov rax, 0\n"); // アラインメントがあってるなら、rax を0にセットし関数を呼び出す
+    printf("  call %s\n", node->funcname);
+    printf("  jmp .Lend%d\n", seq); // 関数呼び出し後の操作に移行
+    printf(".Lcall%d:\n", seq); // raxが0じゃないなら
+    printf("  sub rsp, 8\n"); //rspを8バイト減少させてスタックを下に伸ばす. rspは常に8の倍数だから8を引けば16の倍数になる
+    printf("  mov rax, 0\n"); // raxを0にセットして
+    printf("  call %s\n", node->funcname); // 関数呼び出し
+    printf("  add rsp, 8\n"); // スタックポインタを元に戻す
+    printf(".Lend%d:\n", seq);
+    printf("  push rax\n");
     return;
   }
   case ND_RETURN:
