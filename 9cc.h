@@ -52,6 +52,7 @@ typedef enum {
   ND_RETURN,
   ND_IF,
   ND_WHILE,
+  ND_FOR,
 } NodeKind;
 // AST node type
 typedef struct Node Node;
@@ -61,10 +62,12 @@ struct Node {
   Node *lhs;     // Left-hand side
   Node *rhs;     // Right-hand side
 
-  // "if" or "while" statement
+  // "if" , "while"  or "for" statement
   Node *cond;
   Node *then;
   Node *els;
+  Node *init;
+  Node *inc;
 
   int val;       // Used if kind == ND_NUM
   char name;

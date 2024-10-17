@@ -84,6 +84,24 @@ Node *stmt()
     node->then = stmt();
     return node;
   }
+  if(consume("for")){
+    Node *node = new_node(ND_FOR);
+    expect("(");
+    if(!consume(";")){
+      node->init = expr();
+      expect(";");
+    }
+    if (!consume(";")) {
+      node->cond = expr();
+      expect(";");
+    }
+    if(!consume(")")){
+      node->inc = expr();
+      expect(")");
+    }
+    node->then = stmt();
+    return node;
+  }
   node = expr();
   if (!consume(";")){
     error_at(token->str, "';'ではないトークンです");
