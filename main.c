@@ -11,39 +11,23 @@ int main(int argc, char **argv)
   // fprintf(stderr, "user_input: %s", user_input);
   token = tokenize();
 
-  Token* cur = token;
+  // Token* cur = token;
   // while (cur){
   //   fprintf(stderr, "str: %s\n", cur->str);
   //   fprintf(stderr, "%u\n", cur->len);
   //   cur = cur->next;
   // }
   // fprintf(stderr, "done token");
-  program();
-  // fprintf(stderr, "done program");
-
-  // アセンブリの前半部分を出力
-  printf(".intel_syntax noprefix\n");
-  printf(".globl main\n");
-  printf("main:\n");
-
-  // プロローグ
-  // 変数26個分
-  printf("  push rbp\n");     // 今のrbpの値をpushする
-  printf("  mov rbp, rsp\n"); // rbp = rsp
-  if(locals){
-  printf("  sub rsp, %d\n", locals->offset);
+  Program *prog = program();
+  
+  // それぞれの関数を呼び出す時に必要になるスタックのサイズを確認.
+  // local変数の分だけ必要.
+  int offset = 0;
+  for (LVar *var = prog->locals; var; var = var->next){
+    offset += 8;
+    var->offset = offset;
   }
-  for (int i = 0; code[i]; i++)
-  {
-    gen(code[i]);
-
-    // 式の評価結果としてスタックに一つの値が残っている
-    // はずなので、スタックが溢れないようにポップしておく
-    printf("  pop rax\n");
-  }
-  // エピローグ
-  printf("  mov rsp, rbp\n"); // rsp = rbp
-  printf("  pop rbp\n"); // 値をpopしてrbpに代入.
-  printf("  ret\n");
+  prog->stack_size = offset;
+  codegen(prog);
   return 0;
 }

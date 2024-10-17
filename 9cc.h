@@ -29,6 +29,7 @@ Token* consume_ident();
 bool consume_kind(int token_kind);
 void expect(char *op);
 int expect_number();
+char *expect_ident();
 bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str, int len);
 Token *tokenize();
@@ -84,17 +85,24 @@ struct Node {
 };
 
 // ローカル変数の型
+typedef struct LVar LVar;
 struct LVar {
   struct LVar *next; // 次の変数かNULL
   char *name; // 変数の名前
   int len;    // 名前の長さ
   int offset; // RBPからのオフセット
 };
-void program();
-extern Node *code[100];
-extern struct LVar *locals;
+
 struct LVar *find_lvar(Token *tok);
-//
+
+typedef struct {
+  Node *node;
+  LVar *locals;
+  int stack_size;
+} Program;
+
+Program *program();
+
 // codegen.c
 //
-void gen(Node *node);
+void codegen(Program *prog);

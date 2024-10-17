@@ -1,4 +1,13 @@
 #include "9cc.h"
+LVar *locals;
+
+LVar *find_lvar(Token *tok){
+  for (LVar *var = locals; var; var = var->next){
+    if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
+      return var;
+  }
+  return NULL;
+}
 
 char *strndup(const char *s, size_t n) {
     char *p;
@@ -57,14 +66,23 @@ Node *unary();
 Node *primary();
 
 // 複数の文
-void program()
+Program* program()
 {
-  int i = 0;
+  locals = NULL;
+
+  Node head;
+  head.next = NULL;
+  Node *cur = &head;
+
   while (!at_eof())
   {
-    code[i++] = stmt();
+    cur->next = stmt();
+    cur = cur->next;
   }
-  code[i] = NULL;
+  Program *prog = calloc(1, sizeof(Program));
+  prog->node = head.next;
+  prog->locals = locals;
+  return prog;
 }
 
 // ;で終わるかたまり

@@ -167,3 +167,22 @@ void gen(Node *node) {
   }
   printf("  push rax\n");
 }
+
+void codegen(Program *prog){
+  printf(".intel_syntax noprefix\n");
+  printf(".global main\n");
+  printf("main:\n");
+
+  // Prologue
+  printf("  push rbp\n"); // rbpレジスタをpushする
+  printf("  mov rbp, rsp\n"); // rspをrbpに移す
+  printf("  sub rsp, %d\n", prog->stack_size); // local変数の分だけrspを下げて変数のstore先を確保する
+
+  for (Node* node = prog->node; node; node = node->next){
+    gen(node);
+  }
+  printf(".Lreturn:\n");
+  printf("  mov rsp, rbp\n");
+  printf("  pop rbp\n");
+  printf("  ret\n");
+}

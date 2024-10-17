@@ -5,18 +5,6 @@ char *user_input;
 Token *token;
 typedef struct LVar LVar;
 
-// ローカル変数たち
-LVar *locals;
-
-// 変数を検索. 見つからなかったらNULL.
-LVar *find_lvar(Token *tok){
-  for (LVar *var = locals; var; var = var->next){
-    if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
-      return var;
-  }
-  return NULL;
-}
-
 bool is_alpha(char c) {
   return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_';
 }
