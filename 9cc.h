@@ -51,6 +51,7 @@ typedef enum {
   ND_LVAR,   // ローカル変数
   ND_RETURN,
   ND_IF,
+  ND_WHILE,
 } NodeKind;
 // AST node type
 typedef struct Node Node;
@@ -60,7 +61,7 @@ struct Node {
   Node *lhs;     // Left-hand side
   Node *rhs;     // Right-hand side
 
-  // "if" statement
+  // "if" or "while" statement
   Node *cond;
   Node *then;
   Node *els;

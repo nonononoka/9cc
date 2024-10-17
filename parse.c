@@ -42,6 +42,7 @@ Node *mul();
 Node *unary();
 Node *primary();
 
+// 複数の文
 void program()
 {
   int i = 0;
@@ -52,6 +53,7 @@ void program()
   code[i] = NULL;
 }
 
+// ;で終わるかたまり
 Node *stmt()
 {
   Node *node;
@@ -72,6 +74,14 @@ Node *stmt()
     if(consume("else")){
       node->els = stmt();
     }
+    return node;
+  }
+  if(consume("while")){
+    Node * node = new_node(ND_WHILE);
+    expect("(");
+    node->cond = expr();
+    expect(")");
+    node->then = stmt();
     return node;
   }
   node = expr();
