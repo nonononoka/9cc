@@ -12,9 +12,11 @@ int main(int argc, char **argv)
   token = tokenize();
 
   Token* cur = token;
-  while (cur){
-    cur = cur->next;
-  }
+  // while (cur){
+  //   fprintf(stderr, "str: %s\n", cur->str);
+  //   fprintf(stderr, "%u\n", cur->len);
+  //   cur = cur->next;
+  // }
   // fprintf(stderr, "done token");
   program();
   // fprintf(stderr, "done program");

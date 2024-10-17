@@ -76,6 +76,7 @@ struct Node {
 
   // Function call
   char *funcname;
+  Node *args;
 
   int val;       // Used if kind == ND_NUM
   char name;
