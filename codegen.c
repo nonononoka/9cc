@@ -8,8 +8,9 @@ void gen_lval(Node *node){
   if(node->kind != ND_LVAR){
      error("代入の左辺値が変数ではありません");
   }
+  // fprintf(stderr, "node offset : %u\n", node->var->offset);
   printf("  mov rax, rbp\n");
-  printf("  sub rax, %d\n", node->offset);
+  printf("  sub rax, %d\n", node->var->offset);
   printf("  push rax\n");
 }
 
@@ -181,6 +182,15 @@ void codegen(Function *prog){
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
     printf("  sub rsp, %d\n", fn->stack_size);
+
+    // Push arguments to the stack
+    int i = 0;
+    for (VarList *vl = fn->params; vl; vl = vl->next){
+      LVar *var = vl->var;
+      // 関数の引数もlocal変数と同じと考えてMem[rbp-~] = 引数レジスタのうちのどれか
+      // rbpは関数が呼び出された時のrsp
+      printf("  mov [rbp-%d], %s\n", var->offset, argreg[i++]);
+    }
     // Emit code
     for (Node *node = fn->node; node; node = node->next)
       gen(node);

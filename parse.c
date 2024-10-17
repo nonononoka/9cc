@@ -1,16 +1,16 @@
 #include "9cc.h"
-LVar *locals;
+VarList *locals;
 
 LVar *find_lvar(Token *tok){
-  for (LVar *var = locals; var; var = var->next){
-    if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
+  for (VarList *vl = locals; vl; vl = vl->next){
+    LVar *var = vl->var;
+    if (strlen(var->name) == tok->len && !memcmp(tok->str, var->name, tok->len))
       return var;
   }
   return NULL;
 }
 
 // 文脈自由文法に沿ってASTを生成する
-Node *code[100];
 Node *new_node(NodeKind kind)
 {
   Node *node = calloc(1, sizeof(Node));
@@ -38,6 +38,42 @@ Node *new_num(int val)
   Node *node = new_node(ND_NUM);
   node->val = val;
   return node;
+}
+
+Node *new_var(LVar* var){
+  Node *node = new_node(ND_LVAR);
+  node->var = var;
+  return node;
+}
+
+LVar *push_var(char *name){
+  LVar* lvar = calloc(1, sizeof(struct LVar));
+  lvar->name = name;
+
+  VarList *vl = calloc(1, sizeof(VarList)); // これはどっちかっていうとVarListNodeかも
+  vl->var = lvar;
+  vl->next = locals; // すでにあるlocalsに繋げる
+  locals = vl;
+  return lvar;
+}
+
+VarList *read_func_params(){
+  if (consume(")")){
+    return NULL;
+  }
+
+  VarList* head = calloc(1, sizeof(VarList));
+  head->var = push_var(expect_ident()); // 関数の引数もlocal変数と同じように扱う.
+  VarList *cur = head;
+
+  while(!consume(")")){
+    expect(",");
+    cur->next = calloc(1, sizeof(VarList));
+    cur->next->var = push_var(expect_ident());
+    cur = cur->next;
+  }
+
+  return head;
 }
 
 Function *function();
@@ -69,9 +105,10 @@ Function* program()
 Function *function(){
   locals = NULL; // 一旦NULLに戻す.
 
-  char * name = expect_ident();
+  Function *fn = calloc(1, sizeof(Function));
+  fn->name = expect_ident();
   expect("(");
-  expect(")");
+  fn->params = read_func_params(); // 引数を読み取る
   expect("{");
 
   Node head;
@@ -82,8 +119,6 @@ Function *function(){
     cur = cur->next;
   }
 
-  Function *fn = calloc(1, sizeof(Function));
-  fn->name = name;
   fn->node = head.next;
   fn->locals = locals;
   return fn;
@@ -282,34 +317,10 @@ Node *primary()
       return node;
     }
     // ただのidentifier
-    // ローカル変数のベースポインタからのオフセット
-    Node *node = calloc(1, sizeof(Node));
-    node->kind = ND_LVAR;
-
     struct LVar *lvar = find_lvar(tok);
-    if (lvar)
-    {
-      node->offset = lvar->offset;
-    }
-    else
-    {
-      // 新たな変数の場合、新しいLVarを作って、新たなオフセットをセットして、そのオフセットを使う.
-      lvar = calloc(1, sizeof(struct LVar));
-      lvar->next = locals;
-      lvar->name = tok->str;
-      lvar->len = tok->len;
-      if (locals)
-      {
-        lvar->offset = locals->offset + 8;
-      }
-      else
-      {
-        lvar->offset = 8;
-      }
-      node->offset = lvar->offset;
-      locals = lvar;
-    }
-    return node;
+    if (!lvar)
+      lvar = push_var(strndup(tok->str, tok->len));
+    return new_var(lvar);
   }
   return new_num(expect_number());
 }

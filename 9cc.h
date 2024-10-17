@@ -34,6 +34,14 @@ bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str, int len);
 Token *tokenize();
 extern char *user_input;
+
+// ローカル変数の型
+typedef struct LVar LVar;
+struct LVar {
+  char *name; // 変数の名前
+  int offset; // RBPからのオフセット
+};
+
 extern Token *token;
 //
 // parse.c
@@ -79,28 +87,26 @@ struct Node {
   char *funcname;
   Node *args;
 
-  int val;       // Used if kind == ND_NUM
-  char name;
-  int offset;
-};
+  LVar *var;     // Used if kind == ND_VAR
 
-// ローカル変数の型
-typedef struct LVar LVar;
-struct LVar {
-  struct LVar *next; // 次の変数かNULL
-  char *name; // 変数の名前
-  int len;    // 名前の長さ
-  int offset; // RBPからのオフセット
+  int val;       // Used if kind == ND_NUM
 };
 
 struct LVar *find_lvar(Token *tok);
+
+typedef struct VarList VarList;
+struct VarList {
+  VarList *next;
+  LVar *var;
+};
 
 typedef struct Function Function;
 struct Function{
   Function *next;
   char *name;
+  VarList *params; // 関数の引数
   Node *node;
-  LVar *locals;
+  VarList *locals;
   int stack_size;
 };
 
