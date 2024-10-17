@@ -9,21 +9,6 @@ LVar *find_lvar(Token *tok){
   return NULL;
 }
 
-char *strndup(const char *s, size_t n) {
-    char *p;
-    size_t n1;
-
-    for (n1 = 0; n1 < n && s[n1] != '\0'; n1++)
-        continue;
-    p = malloc(n + 1);
-    if (p != NULL) {
-        memcpy(p, s, n1);
-        p[n1] = '\0';
-    }
-    return p;
-}
-
-
 // 文脈自由文法に沿ってASTを生成する
 Node *code[100];
 Node *new_node(NodeKind kind)
@@ -55,6 +40,7 @@ Node *new_num(int val)
   return node;
 }
 
+Function *function();
 Node *stmt();
 Node *expr();
 Node *assign();
@@ -65,24 +51,42 @@ Node *mul();
 Node *unary();
 Node *primary();
 
-// 複数の文
-Program* program()
+// program = function*
+Function* program()
 {
-  locals = NULL;
+  Function head;
+  head.next = NULL;
+  Function *cur = &head;
+
+  while(!at_eof()){
+    cur->next = function();
+    cur = cur->next;
+  }
+  return head.next;
+}
+
+// function = ident "(" ")" "{" stmt* "}"
+Function *function(){
+  locals = NULL; // 一旦NULLに戻す.
+
+  char * name = expect_ident();
+  expect("(");
+  expect(")");
+  expect("{");
 
   Node head;
   head.next = NULL;
   Node *cur = &head;
-
-  while (!at_eof())
-  {
+  while(!consume("}")){
     cur->next = stmt();
     cur = cur->next;
   }
-  Program *prog = calloc(1, sizeof(Program));
-  prog->node = head.next;
-  prog->locals = locals;
-  return prog;
+
+  Function *fn = calloc(1, sizeof(Function));
+  fn->name = name;
+  fn->node = head.next;
+  fn->locals = locals;
+  return fn;
 }
 
 // ;で終わるかたまり

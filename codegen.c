@@ -2,6 +2,7 @@
 
 int labelseq = 0;
 char *argreg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+char *funcname;
 
 void gen_lval(Node *node){
   if(node->kind != ND_LVAR){
@@ -168,21 +169,25 @@ void gen(Node *node) {
   printf("  push rax\n");
 }
 
-void codegen(Program *prog){
+void codegen(Function *prog){
   printf(".intel_syntax noprefix\n");
-  printf(".global main\n");
-  printf("main:\n");
 
-  // Prologue
-  printf("  push rbp\n"); // rbpレジスタをpushする
-  printf("  mov rbp, rsp\n"); // rspをrbpに移す
-  printf("  sub rsp, %d\n", prog->stack_size); // local変数の分だけrspを下げて変数のstore先を確保する
+  for (Function *fn = prog; fn; fn = fn->next){
+    printf(".global %s\n", fn->name);
+    printf("%s:\n", fn->name);
 
-  for (Node* node = prog->node; node; node = node->next){
-    gen(node);
+    funcname = fn->name;
+    // Prologue
+    printf("  push rbp\n");
+    printf("  mov rbp, rsp\n");
+    printf("  sub rsp, %d\n", fn->stack_size);
+    // Emit code
+    for (Node *node = fn->node; node; node = node->next)
+      gen(node);
+    // Epilogue
+    printf(".Lreturn.%s:\n", funcname);
+    printf("  mov rsp, rbp\n");
+    printf("  pop rbp\n");
+    printf("  ret\n");
   }
-  printf(".Lreturn:\n");
-  printf("  mov rsp, rbp\n");
-  printf("  pop rbp\n");
-  printf("  ret\n");
 }

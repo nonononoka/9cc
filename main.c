@@ -18,16 +18,18 @@ int main(int argc, char **argv)
   //   cur = cur->next;
   // }
   // fprintf(stderr, "done token");
-  Program *prog = program();
+  Function *prog = program();
   
   // それぞれの関数を呼び出す時に必要になるスタックのサイズを確認.
   // local変数の分だけ必要.
-  int offset = 0;
-  for (LVar *var = prog->locals; var; var = var->next){
-    offset += 8;
-    var->offset = offset;
+  for (Function *fn; fn; fn = fn->next){
+    int offset = 0;
+    for (LVar *var = fn->locals; var; var = var->next){
+      offset += 8;
+      var->offset = offset;
+    }
+    fn->stack_size = offset;
   }
-  prog->stack_size = offset;
   codegen(prog);
   return 0;
 }

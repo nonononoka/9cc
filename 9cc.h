@@ -95,14 +95,19 @@ struct LVar {
 
 struct LVar *find_lvar(Token *tok);
 
-typedef struct {
+typedef struct Function Function;
+struct Function{
+  Function *next;
+  char *name;
   Node *node;
   LVar *locals;
   int stack_size;
-} Program;
+};
 
-Program *program();
+Function *program();
 
 // codegen.c
 //
-void codegen(Program *prog);
+void codegen(Function *prog);
+
+char *strndup(const char *s, size_t n);

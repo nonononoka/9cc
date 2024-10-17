@@ -5,6 +5,20 @@ char *user_input;
 Token *token;
 typedef struct LVar LVar;
 
+char *strndup(const char *s, size_t n){
+    char *p;
+    size_t n1;
+
+    for (n1 = 0; n1 < n && s[n1] != '\0'; n1++)
+        continue;
+    p = malloc(n + 1);
+    if (p != NULL) {
+        memcpy(p, s, n1);
+        p[n1] = '\0';
+    }
+    return p;
+}
+
 bool is_alpha(char c) {
   return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_';
 }
@@ -62,6 +76,14 @@ Token *consume_ident() {
   return t;
 }
 
+char *expect_ident(){
+  if(token->kind != TK_IDENT){
+    error_at(token->str, "expected an identifier");
+  }
+  char *s = strndup(token->str, token->len);
+  token = token->next;
+  return s;
+}
 // Ensure that the current token is `op`.
 void expect(char *op) {
   if (token->kind != TK_RESERVED || strlen(op) != token->len ||
