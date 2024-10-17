@@ -102,6 +102,21 @@ Node *stmt()
     node->then = stmt();
     return node;
   }
+
+  if(consume("{")){
+    Node head;
+    head.next = NULL;
+    Node *cur = &head;
+
+    while(!consume("}")){
+      cur->next = stmt();
+      cur = cur->next;
+    }
+    Node *node = new_node(ND_BLOCK);
+    node->body = head.next;
+    return node;
+  }
+
   node = expr();
   if (!consume(";")){
     error_at(token->str, "';'ではないトークンです");
