@@ -54,6 +54,7 @@ typedef enum {
   ND_WHILE,
   ND_FOR,
   ND_BLOCK,
+  ND_FUNCALL, // Function call
 } NodeKind;
 // AST node type
 typedef struct Node Node;
@@ -72,6 +73,9 @@ struct Node {
 
   // Block
   Node* body;
+
+  // Function call
+  char *funcname;
 
   int val;       // Used if kind == ND_NUM
   char name;

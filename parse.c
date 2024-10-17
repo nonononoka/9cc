@@ -1,5 +1,19 @@
 #include "9cc.h"
-#include <stdio.h>
+
+char *strndup(const char *s, size_t n) {
+    char *p;
+    size_t n1;
+
+    for (n1 = 0; n1 < n && s[n1] != '\0'; n1++)
+        continue;
+    p = malloc(n + 1);
+    if (p != NULL) {
+        memcpy(p, s, n1);
+        p[n1] = '\0';
+    }
+    return p;
+}
+
 
 // 文脈自由文法に沿ってASTを生成する
 Node *code[100];
@@ -210,7 +224,9 @@ Node *unary()
     return new_binary(ND_SUB, new_num(0), unary());
   return primary();
 }
-// primary = "(" expr ")" | num
+
+// primary = "(" expr ")" | ident args? | num
+// args = "(" ")"
 Node *primary()
 {
   if (consume("("))
@@ -222,6 +238,15 @@ Node *primary()
   Token *tok = consume_ident();
   if (tok)
   {
+    // 関数の引数呼び出し
+    if(consume("(")){
+      // 今は引数0個
+      expect(")");
+      Node *node = new_node(ND_FUNCALL);
+      node->funcname = strndup(tok->str, tok->len);
+      return node;
+    }
+    // ただのidentifier
     // ローカル変数のベースポインタからのオフセット
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_LVAR;
