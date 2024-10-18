@@ -64,6 +64,8 @@ typedef enum {
   ND_FOR,
   ND_BLOCK,
   ND_FUNCALL, // Function call
+  ND_ADDR,
+  ND_DEREF,
 } NodeKind;
 // AST node type
 typedef struct Node Node;
