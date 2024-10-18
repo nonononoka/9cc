@@ -63,12 +63,14 @@ VarList *read_func_params(){
   }
 
   VarList* head = calloc(1, sizeof(VarList));
+  expect("int");
   head->var = push_var(expect_ident()); // 関数の引数もlocal変数と同じように扱う.
   VarList *cur = head;
 
   while(!consume(")")){
     expect(",");
     cur->next = calloc(1, sizeof(VarList));
+    expect("int");
     cur->next->var = push_var(expect_ident());
     cur = cur->next;
   }
@@ -106,6 +108,7 @@ Function *function(){
   locals = NULL; // 一旦NULLに戻す.
 
   Function *fn = calloc(1, sizeof(Function));
+  expect("int");
   fn->name = expect_ident();
   expect("(");
   fn->params = read_func_params(); // 引数を読み取る
@@ -128,6 +131,22 @@ Function *function(){
 Node *stmt()
 {
   Node *node;
+  if( consume("int")){
+    // 変数の宣言, int x = 3とか
+    // xとかの変数をparseする.
+    char* s = expect_ident();
+    Node* node;
+    // varをする
+    struct LVar *lvar = push_var(strndup(s, strlen(s)));
+    if (consume("=")){
+      node = new_binary(ND_ASSIGN, new_var(lvar), equality());
+    }
+    else{
+      node = new_var(lvar);
+    }
+    expect(";");
+    return node;
+  }
   if (consume("return"))
   {
     node = calloc(1, sizeof(Node));
@@ -322,8 +341,9 @@ Node *primary()
     }
     // ただのidentifier
     struct LVar *lvar = find_lvar(tok);
-    if (!lvar)
-      lvar = push_var(strndup(tok->str, tok->len));
+    if (!lvar){
+        error("変数の宣言がされていません");
+    }
     return new_var(lvar);
   }
   return new_num(expect_number());

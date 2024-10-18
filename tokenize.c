@@ -118,7 +118,7 @@ bool startswith(char *p, char *q) {
 }
 
 char *starts_with_reserved(char *p){
-  static char *kw[] = {"return", "if", "else", "while", "for"};
+  static char *kw[] = {"return", "if", "else", "while", "for", "int"};
 
   for (int i = 0; i < sizeof(kw)/sizeof(*kw); i++){
     int len = strlen(kw[i]);
