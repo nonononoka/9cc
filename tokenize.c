@@ -139,6 +139,14 @@ char *starts_with_reserved(char *p){
   return NULL;
 }
 
+// Returns true if the current token matches a given string.
+Token *peek(char *s) {
+  if (token->kind != TK_RESERVED || strlen(s) != token->len ||
+      memcmp(token->str, s, token->len))
+    return NULL;
+  return token;
+}
+
 // Tokenize `user_input` and returns new tokens.
 Token *tokenize() {
   char *p = user_input;

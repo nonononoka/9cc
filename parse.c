@@ -46,9 +46,10 @@ Node *new_var(LVar* var){
   return node;
 }
 
-LVar *push_var(char *name){
+LVar *push_var(char *name, Type *ty){
   LVar* lvar = calloc(1, sizeof(struct LVar));
   lvar->name = name;
+  lvar->ty = ty;
 
   VarList *vl = calloc(1, sizeof(VarList)); // これはどっちかっていうとVarListNodeかも
   vl->var = lvar;
@@ -57,21 +58,25 @@ LVar *push_var(char *name){
   return lvar;
 }
 
+Type* basetype();
+Type* int_type();
+Type* pointer_to(Type* ty);
+
 VarList *read_func_params(){
   if (consume(")")){
     return NULL;
   }
 
   VarList* head = calloc(1, sizeof(VarList));
-  expect("int");
-  head->var = push_var(expect_ident()); // 関数の引数もlocal変数と同じように扱う.
+  Type *ty = basetype();
+  head->var = push_var(expect_ident(), ty); // 関数の引数もlocal変数と同じように扱う.
   VarList *cur = head;
 
   while(!consume(")")){
     expect(",");
     cur->next = calloc(1, sizeof(VarList));
-    expect("int");
-    cur->next->var = push_var(expect_ident());
+    Type *ty = basetype();
+    cur->next->var = push_var(expect_ident(), ty);
     cur = cur->next;
   }
 
@@ -79,6 +84,7 @@ VarList *read_func_params(){
 }
 
 Function *function();
+Node *declaration();
 Node *stmt();
 Node *expr();
 Node *assign();
@@ -88,6 +94,16 @@ Node *add();
 Node *mul();
 Node *unary();
 Node *primary();
+
+Type* basetype(){
+  // すでにintは消費しているのでカウントしない.
+  expect("int");
+  Type* ty = int_type();
+  while(consume("*")){
+    ty = pointer_to(ty);
+  }
+  return ty;
+}
 
 // program = function*
 Function* program()
@@ -103,12 +119,29 @@ Function* program()
   return head.next;
 }
 
+Node* declaration(){
+  Token *tok = token;
+  Type *ty = basetype();
+  LVar *var = push_var(expect_ident(), ty);
+
+  if(consume(";")){
+    return new_node(ND_NULL);
+  }
+
+  expect("=");
+  Node *lhs = new_var(var);
+  Node *rhs = expr();
+  expect(";");
+  Node *node = new_binary(ND_ASSIGN, lhs, rhs);
+  return node;
+}
+
 // function = ident "(" ")" "{" stmt* "}"
 Function *function(){
   locals = NULL; // 一旦NULLに戻す.
 
   Function *fn = calloc(1, sizeof(Function));
-  expect("int");
+  basetype();
   fn->name = expect_ident();
   expect("(");
   fn->params = read_func_params(); // 引数を読み取る
@@ -131,21 +164,9 @@ Function *function(){
 Node *stmt()
 {
   Node *node;
-  if( consume("int")){
-    // 変数の宣言, int x = 3とか
-    // xとかの変数をparseする.
-    char* s = expect_ident();
-    Node* node;
-    // varをする
-    struct LVar *lvar = push_var(strndup(s, strlen(s)));
-    if (consume("=")){
-      node = new_binary(ND_ASSIGN, new_var(lvar), equality());
-    }
-    else{
-      node = new_var(lvar);
-    }
-    expect(";");
-    return node;
+  Token *tok;
+  if(tok = peek("int")){ // 宣言だったら.
+    return declaration();
   }
   if (consume("return"))
   {

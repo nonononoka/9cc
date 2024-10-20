@@ -23,6 +23,8 @@ void gen_lval_addr(Node *node){
 
 void gen(Node *node) {
   switch (node->kind) {
+  case ND_NULL: // int x;とかは特に何もしない.
+    return;
   case ND_NUM:
     printf("  push %d\n", node->val);
     return;
@@ -150,9 +152,15 @@ void gen(Node *node) {
   printf("  pop rax\n");
   switch (node->kind) {
   case ND_ADD:
+    if(node->ty->kind == TY_PTR){
+      printf("  imul rdi, 8\n");
+    }
     printf("  add rax, rdi\n");
     break;
   case ND_SUB:
+    if(node->ty->kind == TY_PTR){
+      printf("  imul rdi, 8\n");
+    }
     printf("  sub rax, rdi\n");
     break;
   case ND_MUL:

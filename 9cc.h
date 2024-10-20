@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+typedef struct Type Type;
 //
 // tokenize.c
 //
@@ -40,6 +42,7 @@ typedef struct LVar LVar;
 struct LVar {
   char *name; // 変数の名前
   int offset; // RBPからのオフセット
+  Type *ty; // 変数の型
 };
 
 extern Token *token;
@@ -66,12 +69,14 @@ typedef enum {
   ND_FUNCALL, // Function call
   ND_ADDR,
   ND_DEREF,
+  ND_NULL, // int xとかint *xとか
 } NodeKind;
 // AST node type
 typedef struct Node Node;
 struct Node {
   NodeKind kind; // Node kind
   Node *next;
+  Type *ty;
   Node *lhs;     // Left-hand side
   Node *rhs;     // Right-hand side
 
@@ -119,3 +124,16 @@ Function *program();
 void codegen(Function *prog);
 
 char *strndup(const char *s, size_t n);
+Token *peek(char *s);
+//
+// typing.c
+//
+
+typedef enum {TY_INT, TY_PTR} TypeKind;
+typedef struct Type Type;
+struct Type{
+  TypeKind kind;
+  Type *base;
+};
+
+void add_type(Function *prog);

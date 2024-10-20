@@ -19,6 +19,7 @@ int main(int argc, char **argv)
   // }
   // fprintf(stderr, "done token");
   Function *prog = program();
+  add_type(prog);
   
   // それぞれの関数を呼び出す時に必要になるスタックのサイズを確認.
   // local変数の分だけ必要.
